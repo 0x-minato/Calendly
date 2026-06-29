@@ -1,5 +1,7 @@
 import express, { Express, NextFunction } from "express"
 import { userRouter } from "./routers/user.routes.js"
+import { eventTypeRouter } from "./routers/event-type.routes.js"
+import { publicEventTypeRouter } from "./routers/public-event-type.routes.js"
 import { errorHandler } from "./middlewares/error-handler.js"
 import { routeNotFound } from "./middlewares/route-not-found.js"
 
@@ -29,7 +31,9 @@ app.get("/health", (_req, res) => {
     })
 })
 
-app.use('/api/users', userRouter) // whenever new request will it will check if any get api exist if not it will delegate it to userRouter 
+app.use('/api/users', userRouter)
+app.use('/api/event-types', eventTypeRouter)
+app.use('/api/public/event-types', publicEventTypeRouter)
 
 app.use(routeNotFound)
 // at the last we register our err handling middleware
