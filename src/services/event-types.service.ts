@@ -54,7 +54,7 @@ export async function updateEventType(hostId: number, id: number, data: UpdateEv
             throw conflict('event type for this slug already exist, please use a different slug')
     }
 
-    return update(hostId, data)
+    return update(id, data)
 }
 
 export async function getEventTypePublic(hostId: number, eventSlug: string) {

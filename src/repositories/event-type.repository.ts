@@ -94,3 +94,12 @@ export async function slugExistsForHost(slug: string, hostId: number) {
 
     return eventType !== null
 }
+
+export async function findActiveEventTypesByHost(hostId: number) {
+    return prisma.eventType.findMany({
+        where: {
+            hostId,
+            isActive: true
+        }
+    })
+}

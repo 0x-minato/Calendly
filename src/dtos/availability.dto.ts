@@ -6,7 +6,7 @@ const dateString = z.string().regex(
     'Date must be in YYYY-MM-DD format',
 )
 
-export const createAvailabilityRuleSchema = z.object({
+const createAvailabilityRuleBaseSchema = z.object({
     weekday: z.number().int().min(0).max(6),
     startTime: timeString,
     endTime: timeString,
@@ -14,9 +14,14 @@ export const createAvailabilityRuleSchema = z.object({
     timezone: z.string().min(1).default('UTC'),
 })
 
-export const updateAvailabilityRuleSchema = createAvailabilityRuleSchema.partial()
+export const createAvailabilityRuleSchema = createAvailabilityRuleBaseSchema.refine(
+    (rule) => rule.startTime < rule.endTime, 
+    { message: 'Start Time must be greater than end time' }
+)
 
-export const createAvailabilityExceptionSchema = z.object({
+export const updateAvailabilityRuleSchema = createAvailabilityRuleBaseSchema.partial()
+
+export const createAvailabilityExceptionBaseSchema = z.object({
     date: dateString,
     type: z.enum(['BLOCK_FULL_DAY', 'BLOCK_PARTIAL_DAY', 'ADD_AVAILABLE_WINDOW']),
     startTime: timeString.optional(),
@@ -25,17 +30,23 @@ export const createAvailabilityExceptionSchema = z.object({
     reason: z.string().min(1).max(500),
 })
 
-export const updateAvailabilityExceptionSchema = createAvailabilityExceptionSchema.partial()
-
-export const exceptionDateRangeSchema = z.object({
-    startDate: dateString,
-    endDate: dateString,
-}).refine((data) => data.startDate <= data.endDate, {
-    message: 'startDate must be before or equal to endDate',
+export const createAvailabilityExceptionSchema = createAvailabilityExceptionBaseSchema.superRefine((data, ctx) => {
+    if(data.type != 'BLOCK_FULL_DAY') {
+        if (!data.startTime) {
+            ctx.addIssue( { path: ['startTime'], code: 'custom', message: "Start time is required for a non full day exception" } )
+        }
+        if (!data.endTime) {
+            ctx.addIssue( { path: ['endTime'], code: 'custom', message: "End time is required for a non full day exception" } )
+        }
+        if (data.startTime && data.endTime && data.startTime >= data.endTime) {
+            ctx.addIssue( { path: ['endTIme'], code: 'custom', message: ""})
+        }
+    }
 })
+
+export const updateAvailabilityExceptionSchema = createAvailabilityExceptionBaseSchema.partial()
 
 export type CreateAvailabilityRuleDto = z.infer<typeof createAvailabilityRuleSchema>
 export type UpdateAvailabilityRuleDto = z.infer<typeof updateAvailabilityRuleSchema>
 export type CreateAvailabilityExceptionDto = z.infer<typeof createAvailabilityExceptionSchema>
 export type UpdateAvailabilityExceptionDto = z.infer<typeof updateAvailabilityExceptionSchema>
-export type ExceptionDateRangeDto = z.infer<typeof exceptionDateRangeSchema>
