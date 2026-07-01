@@ -26,7 +26,7 @@ export async function findByEmail(email: string) {
     return user
 }
 
-export async function createNewUser(data: createUserDto) {
+export async function createNewUser(data: createUserDto & { slug: string}) {
     const user = await prisma.user.create({
         data
     })
