@@ -6,14 +6,18 @@ import {
     UpdateAvailabilityRuleDto,
 } from '../dtos/availability.dto.js'
 
-export async function findRulesByUser(userId: number, activeOnly = false) {
+export async function findRulesByUser(userId: number) {
     return prisma.availabilityRule.findMany({
-        where: {
-            userId,
-            ...(activeOnly ? { isActive: true } : {}),
-        },
+        where: { userId },
         orderBy: [{ weekday: 'asc' }, { startTime: 'asc' }],
     })
+}
+
+export async function findActiveRulesByUser(userId: number) {
+    return prisma.availabilityRule.findMany({
+        where: { userId, isActive: true },
+        orderBy: [{ weekday: "asc" }, { startTime: "asc" }],
+    });
 }
 
 export async function findRuleById(id: number) {
