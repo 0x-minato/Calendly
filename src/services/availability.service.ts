@@ -16,6 +16,7 @@ import {
     updateException as updateExceptionRepo,
     updateRule as updateRuleRepo,
 } from "../repositories/availability.repository.js"
+import { startRegenerateHostSlotsWorkflow } from "../temporal/client.js"
 import { forbidden, notFound } from "../utils/api-error.js"
 
 export async function listRules(userId: number) {
@@ -23,7 +24,9 @@ export async function listRules(userId: number) {
 }
 
 export async function createRule(userId: number, data: CreateAvailabilityRuleDto) {
-    return createRuleRepo(userId, data)
+    const createRule = createRuleRepo(userId, data)
+    await startRegenerateHostSlotsWorkflow({hostId: userId})
+    return createRule
 }
 
 export async function removeRule(userId: number, id: number) {
@@ -34,7 +37,9 @@ export async function removeRule(userId: number, id: number) {
     if (rule.userId !== userId) {
         throw forbidden('you are not authorized to remove this rule')
     }
-    return removeRuleRepo(id)
+    const removeRule = removeRuleRepo(id)
+    await startRegenerateHostSlotsWorkflow({hostId: userId})
+    return removeRule
 }
 
 export async function updateRule(userId: number, id: number, data: UpdateAvailabilityRuleDto) {
@@ -53,7 +58,9 @@ export async function listExceptions(userId: number) {
 }
 
 export async function createException(userId: number, data: CreateAvailabilityExceptionDto) {
-    return createExceptionRepo(userId, data)
+    const createException = createExceptionRepo(userId, data)
+    await startRegenerateHostSlotsWorkflow({hostId: userId})
+    return createException
 }
 
 export async function removeException(userId: number, id: number) {
@@ -64,7 +71,9 @@ export async function removeException(userId: number, id: number) {
     if (exception.userId !== userId) {
         throw forbidden('you are not authorized to remove this exception')
     }
-    return removeExceptionRepo(id)
+    const removeException = removeExceptionRepo(id)
+    await startRegenerateHostSlotsWorkflow({hostId: userId})
+    return removeException
 }
 
 export async function updateException(userId: number, id: number, data: UpdateAvailabilityExceptionDto) {
@@ -75,5 +84,7 @@ export async function updateException(userId: number, id: number, data: UpdateAv
     if (exception.userId !== userId) {
         throw forbidden('you are not authorized to update this exception')
     }
-    return updateExceptionRepo(id, data)
+    const updateException = updateExceptionRepo(id, data)
+    await startRegenerateHostSlotsWorkflow({hostId: userId})
+    return updateException
 }

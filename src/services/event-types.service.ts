@@ -3,6 +3,7 @@ import { CreateEventTypeDto, UpdateEventTypeDto } from "../dtos/event-type.dto.j
 import { create, deleteById, findActiveByHostAndSlug, findHostById, getById, slugExistsForHost, update } from "../repositories/event-type.repository.js";
 import { conflict, forbidden, notFound } from "../utils/api-error.js";
 import { getUserById } from "../repositories/user.repository.js";
+import { startRegenerateHostSlotsWorkflow } from "../temporal/client.js";
 
 export async function listEventTypes(hostId: number) {
     const eventTypes = await findHostById(hostId)
@@ -18,7 +19,9 @@ export async function createEventType(hostId: number, data: CreateEventTypeDto) 
     if (isSlugTaken) {
         throw conflict('event type for this slug already exist, please use a different slug')
     }
-    return create(hostId, {...data, slug: slugPassed})
+    const eventType = create(hostId, {...data, slug: slugPassed})
+    await startRegenerateHostSlotsWorkflow({hostId})
+    return eventType
 }
 
 export async function removeEventType(hostId: number, id: number) {
@@ -29,7 +32,9 @@ export async function removeEventType(hostId: number, id: number) {
     if (eventType.hostId != hostId) {
         throw forbidden('you are not authorized to remove this event')
     }
-    return deleteById(id)
+    const removeEventType= deleteById(id)
+    await startRegenerateHostSlotsWorkflow({hostId})
+    return removeEventType
 }
 
 export async function getEventTypeById(id: number, hostId: number) {
@@ -54,7 +59,9 @@ export async function updateEventType(hostId: number, id: number, data: UpdateEv
             throw conflict('event type for this slug already exist, please use a different slug')
     }
 
-    return update(id, data)
+    const updatedEventType = update(id, data)
+    await startRegenerateHostSlotsWorkflow({hostId})
+    return updatedEventType
 }
 
 export async function getEventTypePublic(hostId: number, eventSlug: string) {
