@@ -2,6 +2,7 @@ import express, { Express, NextFunction } from "express"
 import { userRouter } from "./routers/user.routes.js"
 import { eventTypeRouter } from "./routers/event-type.routes.js"
 import { availabilityRouter } from "./routers/availability.routes.js"
+import { bookingRouter } from "./routers/booking.routes.js"
 import { publicEventTypeRouter } from "./routers/public-event-type.routes.js"
 import { errorHandler } from "./middlewares/error-handler.js"
 import { routeNotFound } from "./middlewares/route-not-found.js"
@@ -21,6 +22,7 @@ app.get("/health", (_req, res) => {
 
 app.use('/api/users', userRouter)
 app.use('/api/event-types', eventTypeRouter)
+app.use('/api/bookings', bookingRouter)
 app.use('/api/availability', availabilityRouter)
 app.use('/api/public/event-types', publicEventTypeRouter)
 
